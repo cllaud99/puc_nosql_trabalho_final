@@ -25,7 +25,7 @@ Siga os passos abaixo para rodar a aplicação em seu ambiente local.
 ### 1. Clone o Repositório
 
 ```bash
-git clone (https://github.com/cllaud99/puc_nosql_trabalho_final)
+git clone https://github.com/cllaud99/puc_nosql_trabalho_final
 cd puc_nosql_trabalho_final
 ```
 
