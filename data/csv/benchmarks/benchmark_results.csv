@@ -1,0 +1,15 @@
+query,banco,tempo
+write_clients,MongoDB,0.1154643359986948
+write_products,MongoDB,0.0542687419983849
+write_reviews,MongoDB,0.0807739739975659
+write_carts,MongoDB,0.1934143299986317
+write_clientes,MySQL,0.8481190689999494
+write_produtos,MySQL,0.0285381610010517
+write_pedidos,MySQL,0.0810608940009842
+write_itens_pedido,MySQL,0.2431925000018964
+total_pedidos_por_cliente,MySQL,0.056973811999341706
+total_pedidos_por_cliente,MongoDB,2.385739851000835
+total_vendido_por_produto,MySQL,0.005874776998098241
+total_vendido_por_produto,MongoDB,0.01979926299827639
+avg_gasto_por_cliente,MySQL,0.03604694200112135
+avg_gasto_por_cliente,MongoDB,2.2570204740004556

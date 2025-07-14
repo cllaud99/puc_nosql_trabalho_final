@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pedidos}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      IN_DOCKER: true
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pedidos}
+      MYSQL_HOST_DOCKER: ${MYSQL_HOST_DOCKER:-mysql}
+      MONGO_URI_DOCKER: ${MONGO_URI_DOCKER:-mongodb://mongo:27017}
+    depends_on:
+      - mysql
+      - mongo
+    networks:
+      - app-net
+    command: >
+      /app/wait-for-it.sh ${MYSQL_HOST_DOCKER:-mysql} ${MYSQL_PORT:-3306} -- 
+      python src/main.py
+
+volumes:
+  mysql_data:
+  mongo_data:
+
+networks:
+  app-net:
+    driver: bridge
