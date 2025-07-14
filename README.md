@@ -1,77 +1,85 @@
-# Trabalho Final – Integração e Benchmark de Bancos Relacionais e NoSQL  
-**Curso:** Engenharia de Dados – PUC Minas
+# Análise Comparativa: MySQL vs. MongoDB
 
----
+Este projeto implementa um pipeline de dados para comparar o desempenho de um banco de dados relacional (MySQL) e um NoSQL (MongoDB) em um cenário de e-commerce. O processo é totalmente containerizado com Docker para garantir a facilidade de execução e a reprodutibilidade.
 
-## 1. Introdução
+## 🚀 Sobre o Projeto
 
-Este trabalho final tem como objetivo principal compreender e aplicar os conceitos que diferenciam bancos de dados relacionais (RDBMS) e não relacionais (NoSQL), implementando um cenário prático integrado entre **MySQL** e **MongoDB**. Através deste projeto, avaliamos as vantagens, desvantagens, e o desempenho de cada modelo em diferentes operações, além de realizar a carga e análise dos dados entre ambos os sistemas.
+O objetivo é demonstrar na prática as vantagens e desvantagens de cada modelo de banco de dados. O pipeline realiza as seguintes etapas:
 
----
+1.  **Geração de Dados**: Cria dados sintéticos de clientes, produtos, avaliações e carrinhos de compra.
+2.  **Carga no MongoDB**: Insere os dados gerados no MongoDB.
+3.  **ETL para MySQL**: Extrai os dados do MongoDB, transforma-os para o modelo relacional e os carrega no MySQL.
+4.  **Benchmark**: Executa uma série de consultas de escrita e leitura em ambos os bancos para medir e comparar o tempo de execução.
 
-## 2. Objetivos
+## 🛠️ Pré-requisitos
 
-- Entender as principais características dos modelos relacionais e NoSQL.
-- Implementar um sistema de pedidos multicanal utilizando MySQL e MongoDB.
-- Realizar a exportação e integração dos dados entre MongoDB e MySQL via Python.
-- Avaliar desempenho das operações em ambos os bancos.
-- Analisar aspectos de consistência eventual versus transacional.
+Para executar este projeto, você precisará ter instalado:
 
----
+* [Docker](https://www.docker.com/get-started)
+* [Docker Compose](https://docs.docker.com/compose/install/)
 
-## 3. Fundamentação Teórica
+## ▶️ Como Executar
 
-| Característica               | MySQL                          | MongoDB                         |
-|-----------------------------|--------------------------------|--------------------------------|
-| Modelo de dados             | Tabelas, colunas               | Documentos JSON/BSON            |
-| Esquema                    | Estrito                        | Flexível                       |
-| Suporte a transações       | Completo (ACID)                | Parcial (a nível de documento) |
-| Escalabilidade             | Vertical                      | Horizontal                     |
+Siga os passos abaixo para rodar a aplicação em seu ambiente local.
 
-O MySQL é amplamente utilizado para dados estruturados e operações transacionais críticas, enquanto o MongoDB oferece flexibilidade e escalabilidade para dados semi-estruturados, facilitando o desenvolvimento ágil e processamento de grandes volumes.
+### 1. Clone o Repositório
 
----
+```bash
+git clone <URL_DO_SEU_REPOSITORIO>
+cd <NOME_DA_PASTA_DO_PROJETO>
+```
 
-## 4. Metodologia
+### 2. Crie o Arquivo de Ambiente
 
-### 4.1 Cenário Proposto
+O projeto utiliza um arquivo `.env` para configurar as variáveis de ambiente. Crie um arquivo chamado `.env` na raiz do projeto com o seguinte conteúdo:
 
-Implementação de um sistema de pedidos multicanal onde:
+```env
+# Indica se está rodando em container Docker
+IN_DOCKER=true
 
-- **MySQL** armazena dados estruturados: clientes, produtos, pedidos e itens dos pedidos.
-- **MongoDB** gerencia dados semi-estruturados: avaliações, carrinho em tempo real, histórico e preferências dos clientes.
+# MySQL LOCAL
+MYSQL_USER=root
+MYSQL_PASSWORD=root
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DATABASE=pedidos
+# MySQL DOCKER
+MYSQL_HOST_DOCKER=mysql
 
-### 4.2 Modelagem
+# MongoDB para local
+MONGO_URI_LOCAL=mongodb://localhost:27017
+# MongoDB para Docker
+MONGO_URI_DOCKER=mongodb://mongo:27017
+```
 
-**MySQL (Relacional):**
+### 3. Suba os Contêineres com Docker Compose
 
-```sql
-CREATE TABLE clientes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(100),
-  email VARCHAR(100),
-  data_cadastro DATE
-);
+Este é o comando principal. Ele irá construir as imagens, criar os contêineres para a aplicação, o MySQL e o MongoDB, e iniciar todo o pipeline.
 
-CREATE TABLE produtos (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(100),
-  preco DECIMAL(10,2)
-);
+```bash
+docker-compose up --build
+```
 
-CREATE TABLE pedidos (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  cliente_id INT,
-  data_pedido DATETIME,
-  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
-);
+O script `main.py` será executado automaticamente assim que os serviços dos bancos de dados estiverem prontos.
 
-CREATE TABLE itens_pedido (
-  pedido_id INT,
-  produto_id INT,
-  quantidade INT,
-  preco_unitario DECIMAL(10,2),
-  PRIMARY KEY (pedido_id, produto_id),
-  FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
-  FOREIGN KEY (produto_id) REFERENCES produtos(id)
-);
+## 📊 O que Acontece Durante a Execução?
+
+Ao executar o `docker-compose up`, você verá os logs no seu terminal:
+
+1.  Os serviços do MySQL e MongoDB serão iniciados.
+2.  O script `wait-for-it.sh` irá aguardar o MySQL ficar disponível.
+3.  O script Python `src/main.py` começará a ser executado.
+4.  Logs da `loguru` indicarão cada passo do pipeline: geração de dados, carga no MongoDB, transformações e carga no MySQL.
+5.  Ao final, as consultas de benchmark serão executadas.
+
+## ✅ Verificando os Resultados
+
+Após a execução bem-sucedida, os resultados dos benchmarks serão salvos na pasta `data/csv/benchmarks/`. Você pode inspecionar os seguintes arquivos:
+
+* `benchmark_results.csv`: Contém os tempos de todas as operações de escrita e leitura.
+* Arquivos `.csv` individuais para cada consulta comparativa (ex: `mysql_total_pedidos_por_cliente.csv`).
+
+Para parar e remover os contêineres, pressione `Ctrl + C` no terminal onde o docker-compose está rodando e depois execute:
+
+```bash
+docker-compose down
